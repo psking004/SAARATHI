@@ -16,8 +16,6 @@ class NearbyResponderServiceTest {
 
     @Before
     fun setUp() {
-        NearbyResponderService.clearResponders()
-        // Register test responders
         NearbyResponderService.registerOrUpdateResponder(
             ResponderProfile(
                 id = "resp-1",
@@ -25,14 +23,14 @@ class NearbyResponderServiceTest {
                 name = "Dr. Priya Rao",
                 phone = "+919876543210",
                 type = ResponderType.MEDICAL_PROFESSIONAL,
-                skills = listOf("CPR", "Trauma Care"),
+                languages = listOf("English", "Hindi"),
                 isAvailable = true,
-                verificationStatus = VerificationStatus.VERIFIED,
+                verificationStatus = VerificationStatus.CREDENTIAL_VERIFIED,
                 address = "MG Road, Bengaluru",
                 trainingDetails = "Apollo Emergency Medicine Fellow",
-                registeredAt = System.currentTimeMillis(),
-                lastLocationLat = 12.9720, // ~100m away from 12.9716, 77.5946
-                lastLocationLng = 77.5950
+                createdAt = System.currentTimeMillis(),
+                latitude = 12.9720, // ~100m away from 12.9716, 77.5946
+                longitude = 77.5950
             )
         )
 
@@ -43,14 +41,14 @@ class NearbyResponderServiceTest {
                 name = "Rahul Sharma",
                 phone = "+919876543211",
                 type = ResponderType.CPR_TRAINED,
-                skills = listOf("CPR"),
+                languages = listOf("English"),
                 isAvailable = true,
-                verificationStatus = VerificationStatus.VERIFIED,
+                verificationStatus = VerificationStatus.COMMUNITY_VERIFIED,
                 address = "Indiranagar, Bengaluru",
                 trainingDetails = "Red Cross Certified",
-                registeredAt = System.currentTimeMillis(),
-                lastLocationLat = 12.9780, // ~1.5km away
-                lastLocationLng = 77.6400
+                createdAt = System.currentTimeMillis(),
+                latitude = 12.9780, // ~1.5km away
+                longitude = 77.6400
             )
         )
 
@@ -61,21 +59,21 @@ class NearbyResponderServiceTest {
                 name = "Ananya Desai",
                 phone = "+919876543212",
                 type = ResponderType.VOLUNTEER,
-                skills = emptyList(),
+                languages = emptyList(),
                 isAvailable = false, // Offline
                 verificationStatus = VerificationStatus.UNVERIFIED,
                 address = "Koramangala, Bengaluru",
                 trainingDetails = "",
-                registeredAt = System.currentTimeMillis(),
-                lastLocationLat = 12.9716,
-                lastLocationLng = 77.5946
+                createdAt = System.currentTimeMillis(),
+                latitude = 12.9716,
+                longitude = 77.5946
             )
         )
     }
 
     @Test
     fun testHaversineDistanceCalculation() {
-        val dist = NearbyResponderService.calculateDistanceMeters(
+        val dist = NearbyResponderService.calculateHaversineDistance(
             12.9716, 77.5946,
             12.9720, 77.5950
         )
@@ -112,7 +110,7 @@ class NearbyResponderServiceTest {
             notes = "High-G frontal impact"
         )
 
-        val responder = NearbyResponderService.getResponder("resp-1")
+        val responder = NearbyResponderService.getResponderByUserId("user-1")
         assertNotNull(responder)
 
         val request = NearbyResponderService.createAssignmentRequest(

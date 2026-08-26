@@ -38,6 +38,54 @@ class AuthRepository(
         }
     }
 
+    suspend fun ensureDefaultSession(): UserSession {
+        val existing = userSessionDao.getActiveSessionSync()
+        if (existing != null) {
+            return UserSession(
+                userId = existing.userId,
+                email = existing.email,
+                fullName = existing.fullName,
+                token = existing.token,
+                expiresAt = existing.expiresAt,
+                isActive = existing.isActive
+            )
+        }
+        val defaultUserId = "usr-saarathi-primary"
+        val now = System.currentTimeMillis()
+        val defaultProfile = ProfileEntity(
+            id = defaultUserId,
+            fullName = "Arjun Kumar",
+            email = "arjun.kumar@saarathi.org",
+            phone = "+91 98765 43210",
+            bloodType = "O+",
+            medicalNotes = "Penicillin Allergy. Asthmatic. No cardiac history.",
+            avatarUrl = null,
+            createdAt = now,
+            updatedAt = now
+        )
+        profileDao.upsertProfile(defaultProfile)
+
+        val sessionEntity = UserSessionEntity(
+            userId = defaultUserId,
+            email = defaultProfile.email,
+            fullName = defaultProfile.fullName,
+            token = "sb_token_local_default",
+            expiresAt = now + (365L * 24 * 60 * 60 * 1000),
+            isActive = true,
+            createdAt = now
+        )
+        userSessionDao.saveSession(sessionEntity)
+
+        return UserSession(
+            userId = sessionEntity.userId,
+            email = sessionEntity.email,
+            fullName = sessionEntity.fullName,
+            token = sessionEntity.token,
+            expiresAt = sessionEntity.expiresAt,
+            isActive = true
+        )
+    }
+
     suspend fun signUp(
         fullName: String,
         email: String,

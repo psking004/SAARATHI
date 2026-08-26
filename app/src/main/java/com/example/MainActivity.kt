@@ -147,7 +147,7 @@ fun SaarathiApp(viewModel: MainViewModel) {
 
     Scaffold(
         bottomBar = {
-            if (showBottomBar && session != null) {
+            if (showBottomBar) {
                 NavigationBar(
                     containerColor = Color.White,
                     tonalElevation = 0.dp,
@@ -220,14 +220,8 @@ fun SaarathiApp(viewModel: MainViewModel) {
             composable("splash") {
                 SplashScreen(
                     onSessionChecked = {
-                        if (session != null) {
-                            navController.navigate("dashboard") {
-                                popUpTo("splash") { inclusive = true }
-                            }
-                        } else {
-                            navController.navigate("login") {
-                                popUpTo("splash") { inclusive = true }
-                            }
+                        navController.navigate("dashboard") {
+                            popUpTo("splash") { inclusive = true }
                         }
                     }
                 )

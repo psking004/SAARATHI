@@ -196,6 +196,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun restoreSessionAndSeedDefaults() {
         viewModelScope.launch {
+            authRepository.ensureDefaultSession()
             authRepository.activeSession.collectLatest { session ->
                 _userSession.value = session
                 _isSessionLoading.value = false
