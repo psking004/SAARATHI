@@ -1,0 +1,6 @@
+{
+  "name": "SAARATHI",
+  "description": "Bridging the Golden Hour — Emergency coordination platform connecting victims, bystanders, and emergency services during the critical golden hour.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

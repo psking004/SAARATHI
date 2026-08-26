@@ -1,0 +1,21 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- SAARATHI Shield / Beacon Outline -->
+    <path
+        android:fillColor="#00A6A6"
+        android:pathData="M54,26L34,35V53C34,66.5 42.5,79 54,82C65.5,79 74,66.5 74,53V35L54,26Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,30L38,37.2V52.5C38,63.5 45,74 54,76.8C63,74 70,63.5 70,52.5V37.2L54,30Z" />
+    <!-- Emergency Pulse & Golden Hour Cross Inside -->
+    <path
+        android:fillColor="#0B1F33"
+        android:pathData="M51,42H57V51H66V57H57V66H51V57H42V51H51V42Z" />
+    <!-- Golden Core Dot -->
+    <path
+        android:fillColor="#F59E0B"
+        android:pathData="M54,54m-3,0a3,3 0 1,0 6,0a3,3 0 1,0 -6,0" />
+</vector>
