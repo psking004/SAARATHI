@@ -16,3 +16,12 @@
 local.properties
 .env
 debug.keystore
+
+# Build output
+build/
+
+# Signing material and local secrets: never commit
+keystore.properties
+*.jks
+*.keystore
+app/google-services.json
