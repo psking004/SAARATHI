@@ -222,9 +222,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             contactRepository.getContacts(userId).collectLatest { contacts ->
                 _emergencyContacts.value = contacts
-                if (contacts.isEmpty()) {
-                    seedDefaultContacts(userId)
-                }
             }
         }
 
@@ -261,29 +258,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 _incidentHistory.value = list
             }
         }
-    }
-
-    private suspend fun seedDefaultContacts(userId: String) {
-        val default1 = EmergencyContact(
-            id = UUID.randomUUID().toString(),
-            userId = userId,
-            name = "Ramesh Sharma (Father)",
-            phone = "+91 98450 11223",
-            relationship = "Parent",
-            priority = 1,
-            isActive = true
-        )
-        val default2 = EmergencyContact(
-            id = UUID.randomUUID().toString(),
-            userId = userId,
-            name = "Priya Sharma (Spouse)",
-            phone = "+91 98450 99887",
-            relationship = "Spouse",
-            priority = 2,
-            isActive = true
-        )
-        contactRepository.upsertContact(default1)
-        contactRepository.upsertContact(default2)
     }
 
     // --- Authentication Actions ---

@@ -547,10 +547,10 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.height(10.dp))
 
                     ProfileFieldRow(label = "Emergency Phone", value = userProfile?.phone?.ifBlank { "Not set" } ?: "Not set")
-                    ProfileFieldRow(label = "Blood Group", value = userProfile?.bloodType?.ifBlank { "O+" } ?: "O+")
+                    ProfileFieldRow(label = "Blood Group", value = userProfile?.bloodType?.ifBlank { "Not set" } ?: "Not set")
                     ProfileFieldRow(
                         label = "Medical Notes & Allergies",
-                        value = userProfile?.medicalNotes?.ifBlank { "None reported. NKDA." } ?: "None reported."
+                        value = userProfile?.medicalNotes?.ifBlank { "None reported" } ?: "None reported"
                     )
                 }
             }
@@ -573,7 +573,7 @@ fun ProfileScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Session token stored securely with local persistence and Supabase Auth backend synchronization.",
+                        text = "Local offline profile stored on this device only. Cloud sign-in and sync (Supabase) are planned.",
                         fontSize = 12.sp,
                         color = TextSecondary
                     )
@@ -630,7 +630,7 @@ fun EditProfileDialog(
 ) {
     var fullName by remember { mutableStateOf(current?.fullName ?: "") }
     var phone by remember { mutableStateOf(current?.phone ?: "") }
-    var bloodType by remember { mutableStateOf(current?.bloodType ?: "O+") }
+    var bloodType by remember { mutableStateOf(current?.bloodType ?: "") }
     var medicalNotes by remember { mutableStateOf(current?.medicalNotes ?: "") }
 
     val bloodOptions = listOf("A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-")

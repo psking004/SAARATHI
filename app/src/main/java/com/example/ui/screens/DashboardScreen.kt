@@ -251,7 +251,7 @@ fun DashboardScreen(
 
                 DashboardActionCard(
                     title = "Medical ID",
-                    subtitle = userProfile?.bloodType?.ifBlank { "O+" } ?: "Triage Profile",
+                    subtitle = userProfile?.bloodType?.ifBlank { "Blood group not set" } ?: "Triage Profile",
                     icon = Icons.Default.Favorite,
                     iconTint = SaarathiNavy,
                     modifier = Modifier

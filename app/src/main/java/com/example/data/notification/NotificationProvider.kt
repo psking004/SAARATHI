@@ -182,7 +182,7 @@ class AndroidSystemNotificationProvider(
             val builder = NotificationCompat.Builder(context, CHANNEL_STATUS)
                 .setSmallIcon(android.R.drawable.ic_dialog_email)
                 .setContentTitle("Emergency Alert Broadcast")
-                .setContentText("Emergency SMS & Location shared with $activeCount active emergency contacts.")
+                .setContentText("SMS alerts are not available yet. Call your $activeCount active emergency contacts directly.")
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setAutoCancel(true)
 
@@ -192,7 +192,7 @@ class AndroidSystemNotificationProvider(
                 isDelivered = true,
                 channel = CHANNEL_STATUS,
                 providerName = providerName,
-                statusMessage = "Direct SMS broadcast queue triggered for $activeCount verified contacts.",
+                statusMessage = "Local notification only; SMS to $activeCount contacts is planned, not implemented.",
                 recipientCount = activeCount
             )
         } catch (e: Exception) {
