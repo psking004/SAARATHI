@@ -1,120 +1,110 @@
-# SAARATHI — Mobile Emergency Assistance & Coordination Platform
+# SAARATHI — Accident Detection & Emergency Coordination (Android prototype)
 
-> **"Bridging the Golden Hour."**
-> *"We don't just detect an accident. We connect the right help to the right place during the Golden Hour."*
+> **"Bridging the Golden Hour."** Detect a possible road accident from phone sensors, confirm it with the rider, and help connect them to the right help during the first 60 minutes.
 
----
+SAARATHI is an **offline-first Android prototype** written in Kotlin and Jetpack Compose. It reads the phone's accelerometer, gyroscope and GPS during a journey, runs a **rule-based crash-detection engine**, and starts a 10-second "Are you okay?" countdown before escalating to an emergency state with one-tap dialling of Indian emergency numbers, first-aid guidance and nearby-responder matching.
 
-## 🛡️ Core Philosophy & Safety Guarantees
+It is **not** a replacement for 112/108 or any emergency service, it does not guarantee crash detection, and it does not dispatch ambulances.
 
-SAARATHI is an **assistance and coordination platform** engineered to minimize delay in the first 60 minutes following a severe traumatic accident.
+## Status at a glance
 
-### Absolute Transparency Principles:
-- **No Guaranteed Predictions:** The system does NOT claim 100% crash detection, guaranteed ambulance dispatch, or professional medical diagnosis.
-- **Deterministic Heuristics (Zero ML Hype):** Evaluates multi-sensor telemetry (G-force magnitude, rotation rates, speed deltas, deceleration jerk) deterministically. Phone drops and nominal driving bumps are safely disambiguated without false emergency triggers.
-- **Real Emergency Integration:** Direct calling capability for national helplines (**112** Unified Emergency, **108** Trauma/Ambulance, **100** Police, **101** Fire). No fabricated dispatch APIs.
-- **Privacy-Preserving Dispatch:** Responders only receive approximate landmark areas until verified. Exact victim medical history is protected.
-- **Offline-First Resilience:** Incident data and sensor waypoints are cached in SQLite Room and synchronized via `OfflineSyncRepository` when network connectivity returns.
+| Area | Status |
+|---|---|
+| Rule-based crash detection (G-force, rotation, speed delta, jerk) | ✅ Implemented, unit-tested |
+| 10-second confirmation countdown and emergency state machine | ✅ Implemented, unit-tested |
+| One-tap dialling of 112 / 108 / 100 / 101 and emergency contacts | ✅ Implemented (opens the phone dialler) |
+| First-aid & scene-safety guidance in English, Hindi, Kannada, Tamil | ✅ Implemented, unit-tested |
+| Good Samaritan legal-protection info screen | ✅ Implemented (static content) |
+| Local Room database (profile, contacts, journeys, incidents) | ✅ Implemented |
+| Nearby-responder matching (Haversine, 5 km radius) | ✅ Implemented against a built-in sample responder pool |
+| Local system notifications (alert, responder, status) | ✅ Implemented |
+| Login / account | ⚠️ **Local offline profile only.** No server authentication; "sign in" creates or restores a profile stored on the device |
+| Map | ⚠️ Custom Compose Canvas map view; the Mapbox SDK is **not** integrated (only a token reader exists) |
+| Supabase cloud sync | 🕒 **Planned.** Config reader, SQL migration and a local pending-sync queue exist; nothing is uploaded yet |
+| SMS / push alerts to emergency contacts and responders | 🕒 **Planned.** Only local notifications on this phone are shown today |
+| ML-based crash detection | 🕒 **Planned.** `MLDetectionEngineStub` currently delegates to the rule-based engine |
 
----
+## Features
 
-## 🧩 Architectural Overview
+### Journey monitoring & detection
+- Start/end a journey; the sensor pipeline reads the accelerometer and gyroscope (`SensorManager`) and location (`LocationManager`) while a journey is active.
+- Live readout of acceleration (X/Y/Z, total G), rotation rate, speed, jerk and GPS accuracy.
+- `RuleBasedDetectionEngine` classifies telemetry as low / medium / high risk and separates phone drops and normal bumps from likely crashes.
+- Test panel with simulated scenarios: Normal Cruising, Phone Fall, Sudden Braking, Rollover Anomaly, High-G Crash.
 
-The application is architected according to **MVVM + Clean Architecture**:
+### Confirmation & escalation
+- On a high-risk reading: a 10-second countdown with a high-priority local notification.
+- **I'M OKAY** dismisses it and records a false alarm; **I NEED HELP** or timeout escalates to the active-emergency state.
+- Escalation shows a local notification, lists your emergency contacts for one-tap calling, and searches the sample responder pool.
+
+### Profile & emergency contacts (stored on the device)
+- Local profile: name, email, phone, blood group, medical notes. All fields are entered by the user; nothing is pre-filled.
+- Emergency contacts with priority order and active/inactive toggle.
+
+### Community responders
+- Register as a responder (CPR-trained, first-aid, doctor, volunteer) on this device.
+- Haversine distance matching within 5 km, with Accept/Decline and status tracking.
+
+### First-aid & legal guidance
+- Step-by-step guidance for an unconscious person, severe bleeding, fractures, vehicle hazards, fire/smoke and roadside perimeter safety, in four languages.
+- Good Samaritan protections (Section 134A, Motor Vehicles Act, and Supreme Court guidelines) as an information screen.
+
+## Architecture
+
+MVVM with a single `MainViewModel`, Room for persistence, and Jetpack Compose for UI. Package: `com.example`.
 
 ```
 com.example/
-├── domain/
-│   ├── detection/          # RuleBasedDetectionEngine & heuristic crash algorithms
-│   ├── emergency/          # EmergencyStateMachine & Golden Hour state progression
-│   ├── model/              # Domain models (Incident, Journey, Responder, Telemetry)
-│   ├── notification/       # Multi-channel notification dispatchers (SMS, Push, Call, SysNotif)
-│   ├── responder/          # NearbyResponderService (Haversine candidate matching)
-│   ├── safety/             # Multi-lingual safety guidance & Good Samaritan law repository
-│   └── telemetry/          # SensorPipeline, GPS status, and mock test harnesses
+├── MainActivity.kt
 ├── data/
-│   ├── local/              # Room database (RoomAppDatabase, DAOs, SyncQueue)
-│   ├── remote/             # Supabase & Mapbox client configurations
-│   ├── repository/         # Clean repository layer with offline fallback
-│   └── sync/               # OfflineSyncRepository with exponential backoff queue
-├── ui/
-│   ├── screens/            # Jetpack Compose UI Screens (Clean Utility / Minimal Theme)
-│   │   ├── DashboardScreen.kt
-│   │   ├── JourneyActiveScreen.kt
-│   │   ├── IncidentScreens.kt
-│   │   ├── ResponderScreens.kt
-│   │   ├── SafetyGuidanceScreen.kt
-│   │   ├── GoodSamaritanScreen.kt
-│   │   ├── ManagementScreens.kt
-│   │   └── AuthScreens.kt
-│   ├── theme/              # Material 3 Color Schemes & Typography
-│   └── MainViewModel.kt    # Unified UI State Orchestration & State Flow
+│   ├── local/              # Room database, DAOs, entities (incl. PendingSyncEntity queue)
+│   ├── notification/       # NotificationProvider (local Android notifications)
+│   ├── remote/             # SupabaseConfig, MapboxConfig (read keys from BuildConfig; no network calls yet)
+│   ├── repository/         # Auth (local), Profile, Contacts, Journey, Incident, OfflineSync repositories
+│   └── sensors/            # SensorPipeline (accelerometer, gyroscope, GPS, simulation injection)
+├── domain/
+│   ├── detection/          # DetectionEngine interface, RuleBasedDetectionEngine, MLDetectionEngineStub
+│   ├── model/              # Domain models, EmergencyStateMachine
+│   ├── responder/          # NearbyResponderService (Haversine matching, sample pool)
+│   └── safety/             # Multi-language first-aid guidance, Good Samaritan content
+└── ui/
+    ├── MainViewModel.kt
+    ├── components/         # Canvas map view, shared components
+    ├── screens/            # Auth, Dashboard, Journey, Incident, Responder, SafetyGuidance, GoodSamaritan, Management
+    └── theme/
 ```
 
----
+Other folders: `supabase/migrations/` (draft Postgres schema for the planned sync), `docs/architecture.md` (design notes).
 
-## ✨ Features Implemented
+## Tech stack
 
-### 1. 🔐 Authentication & Profile
-- Full registration (Name, Email, Phone, Blood Group, Medical Notes) and secure session management.
-- Medical ID card and Emergency Contact management with priority ordering and toggleable active status.
+Kotlin 2.2, Jetpack Compose (Material 3), Navigation Compose, Room 2.7 (KSP), Coroutines/Flow, Android sensor & location APIs. Tests: JUnit, Robolectric, Roborazzi (screenshot), kotlinx-coroutines-test. Build: Gradle 9.3 with AGP 9.1, JDK 17, minSdk 24 / targetSdk 36.
 
-### 2. 🗺️ Mapbox & Real Journey Telemetry
-- Integrated Mapbox vector maps visualizing current position, live route breadcrumbs, and incident coordinates.
-- Real-time sensor readout display showing accelerometer (X/Y/Z, total G-force), gyroscope (DPS), speed (km/h), jerk rate (G/s), and GPS accuracy.
-- Testing panel with preset physical scenarios: *Normal Cruising, Phone Fall, Sudden Braking, Rollover Anomaly, High-G Impact*.
+Retrofit, OkHttp, Moshi, DataStore and Play Services Location are declared as dependencies for the planned cloud and location work but are not used yet.
 
-### 3. 🚨 10-Second Confirmation & Escalation Loop
-- 10-second auditory and visual countdown upon detecting a severe impact.
-- **"I'M OKAY"**: Dismisses the incident, returns to normal monitoring, and logs the false alarm.
-- **"I NEED HELP"** / **Timeout**: Instantly escalates to active emergency state, triggers loud system alert notification, notifies priority emergency contacts, and activates responder search.
+## Tests
 
-### 4. 🤝 Community First-Responder Network
-- Voluntary registration as a certified community responder (CPR-trained, First-Aid, Doctor, or Volunteer).
-- Haversine distance-based discovery for responders within a 5 km radius.
-- Responder assignment dashboard with Accept/Decline actions, navigation to target area, and status tracking.
+Local JVM tests in `app/src/test`:
+- `DetectionEngineTest`: crash heuristics, phone-drop handling, severe-impact alerts
+- `EmergencyStateMachineTest`: valid and invalid state transitions
+- `NearbyResponderServiceTest`: Haversine distance and candidate selection
+- `SafetyGuidanceRepositoryTest`: guidance completeness across languages
+- `SaarathiDatabaseAndModelsTest`: Room CRUD (Robolectric)
+- `GreetingScreenshotTest`: Roborazzi screenshot test
 
-### 5. 🩹 Interactive First-Aid & Scene Safety Guidance
-- Step-by-step emergency guidance for:
-  1. Unconscious Person (airway, recovery position, helmet precautions)
-  2. Severe Bleeding Control (direct continuous pressure, elevation)
-  3. Bone & Joint Fractures (splinting, immobilization)
-  4. Vehicle Hazards (ignition cutoff, hazard lights, fuel leaks)
-  5. Fire & Smoke Containment (upwind evacuation, extinguisher rules)
-  6. Roadside Collision Perimeter (warning triangles, lane defense)
-- **Multi-language support:** English, Hindi (हिन्दी), Kannada (ಕನ್ನಡ), and Tamil (தமிழ்).
-- **Simulated audio read-out** for hands-free step guidance during high-stress moments.
-
-### 6. ⚖️ Good Samaritan Legal Protection Shield
-- Full statutory legal protections under **Section 134A of the Motor Vehicles Act** and Supreme Court guidelines:
-  - Zero civil or criminal liability for assisting in good faith.
-  - Complete protection against forced police interrogation or identity disclosure.
-  - Hospitals legally barred from demanding advance deposits before emergency treatment.
-  - Information on the MoRTH National Good Samaritan Cash Reward Scheme.
-
-### 7. 📶 Offline Resilience
-- Local SQLite Room persistence for all emergency data.
-- Pending sync queue (`PendingSyncEntity`) records failed network syncs and retries with backoff upon reconnection.
-
----
-
-## 🧪 Testing & Verification
-
-Comprehensive local JVM test coverage across all domains:
-- `DetectionEngineTest`: Verification of crash detection heuristics, phone drop disambiguation, and severe collision alerts.
-- `EmergencyStateMachineTest`: Verification of valid and invalid state transitions and listener callbacks.
-- `NearbyResponderServiceTest`: Haversine distance calculations and candidate selection.
-- `SafetyGuidanceRepositoryTest`: Verification of multi-language guidance and step completeness.
-- `SaarathiDatabaseAndModelsTest`: Room database CRUD and local persistence testing.
-
----
-
-## 🛠️ Build & Run
+## Build & run
 
 ```bash
-# Compile and build debug APK
-gradle :app:assembleDebug
-
-# Execute unit and Robolectric tests
-gradle :app:testDebugUnitTest
+./gradlew :app:assembleDebug        # debug APK
+./gradlew :app:testDebugUnitTest    # unit + Robolectric tests
 ```
+
+Optional keys go in `.env` (see `.env.example`) and are injected through the Secrets Gradle plugin. Without them the app runs in local-only mode.
+
+## Roadmap
+
+1. Supabase Auth and sync for profiles, contacts and incidents (drain the pending-sync queue).
+2. SMS to emergency contacts and push notifications to nearby responders.
+3. A real responder registry instead of the sample pool.
+4. Mapbox SDK map with live location.
+5. An ML crash classifier behind the existing `DetectionEngine` interface.

@@ -145,8 +145,8 @@ fun LoginScreen(
     onNavigateToRegister: () -> Unit,
     onLoginClick: (email: String, pass: String, onSuccess: () -> Unit, onError: (String) -> Unit) -> Unit
 ) {
-    var email by remember { mutableStateOf("guardian@saarathi.org") }
-    var password by remember { mutableStateOf("protect123") }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
 
@@ -355,7 +355,7 @@ fun RegisterScreen(
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
-    var bloodType by remember { mutableStateOf("O+") }
+    var bloodType by remember { mutableStateOf("") }
     var medicalNotes by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }

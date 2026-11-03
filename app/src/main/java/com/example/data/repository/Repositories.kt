@@ -54,11 +54,12 @@ class AuthRepository(
         val now = System.currentTimeMillis()
         val defaultProfile = ProfileEntity(
             id = defaultUserId,
-            fullName = "Arjun Kumar",
-            email = "arjun.kumar@saarathi.org",
-            phone = "+91 98765 43210",
-            bloodType = "O+",
-            medicalNotes = "Penicillin Allergy. Asthmatic. No cardiac history.",
+            // Local offline profile: left blank so the user enters their own details.
+            fullName = "SAARATHI User",
+            email = "",
+            phone = "",
+            bloodType = "",
+            medicalNotes = "",
             avatarUrl = null,
             createdAt = now,
             updatedAt = now
@@ -113,7 +114,7 @@ class AuthRepository(
             fullName = fullName.trim(),
             email = trimmedEmail,
             phone = phone.trim(),
-            bloodType = bloodType.trim().ifBlank { "O+" },
+            bloodType = bloodType.trim(),
             medicalNotes = medicalNotes.trim(),
             avatarUrl = null,
             createdAt = now,
@@ -167,11 +168,11 @@ class AuthRepository(
 
         val profile = existingProfile ?: ProfileEntity(
             id = userId,
-            fullName = "Saarathi Guardian",
+            fullName = trimmedEmail.substringBefore("@"),
             email = trimmedEmail,
-            phone = "+91 98765 43210",
-            bloodType = "B+",
-            medicalNotes = "No major known drug allergies. NKDA.",
+            phone = "",
+            bloodType = "",
+            medicalNotes = "",
             avatarUrl = null,
             createdAt = now,
             updatedAt = now
